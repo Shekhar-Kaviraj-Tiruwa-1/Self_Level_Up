@@ -27,13 +27,27 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install
-        run: npm install  # <-- more tolerant than "npm ci"
+      - name: Install (ci if lockfile exists, else install)
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "Using npm ci"
+            npm ci
+          else
+            echo "No lockfile; using npm install"
+            npm install
+          fi
+
+      - name: Show versions (debug)
+        run: |
+          node -v
+          npm -v
+          npx vite --version || true
 
       - name: Build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
-        run: npm run build
+          CI: false
+        run: npm run build -- --logLevel info
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
